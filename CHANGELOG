@@ -1,0 +1,5 @@
+0.5.0
+-----
+
+Initial release created by merging graylog2-resque and graylog2_exceptions and modifying to send to log4r 
+
