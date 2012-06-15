@@ -65,9 +65,8 @@ describe Log4rExceptionable::RackFailureHandler do
     
     it "triggers failure handler" do
       Log4r::Logger['racklogger'].should_receive(:error) do |msg|
-        msg.should == "RuntimeError: I failed"
-        Log4r::MDC.get('rack_exception_backtrace').should =~ /rack_failure_handler_spec.rb/
-        Log4r::MDC.get('rack_exception_backtrace').lines.to_a.size.should > 1
+        msg.should =~ /^RuntimeError: I failed/
+        msg.should =~ /rack_failure_handler_spec.rb/
         Log4r::MDC.get('rack_exception_line').should =~ /\d+/
         Log4r::MDC.get('rack_exception_file').should =~ /rack_failure_handler_spec.rb/
         Log4r::MDC.get('rack_env_PATH_INFO').should == '"/error"'
@@ -81,7 +80,7 @@ describe Log4rExceptionable::RackFailureHandler do
     it "uses default logger if controller logger is nil" do
       
       Log4r::Logger['racklogger'].should_receive(:error) do |msg|
-        msg.should == "RuntimeError: I failed"
+        msg.should =~ /^RuntimeError: I failed/
       end
       
       lambda {
@@ -92,7 +91,7 @@ describe Log4rExceptionable::RackFailureHandler do
     it "uses default logger if controller logger is not log4r" do
       
       Log4r::Logger['racklogger'].should_receive(:error) do |msg|
-        msg.should == "RuntimeError: I failed"
+        msg.should =~ /^RuntimeError: I failed/
       end
       
       lambda {
@@ -104,7 +103,7 @@ describe Log4rExceptionable::RackFailureHandler do
       Log4r::Logger.new('ControllerLogger')
       Log4r::Logger['racklogger'].should_not_receive(:error)
       Log4r::Logger['ControllerLogger'].should_receive(:error) do |msg|
-        msg.should == "RuntimeError: I failed"
+        msg.should =~ /^RuntimeError: I failed/
       end
       
       lambda {
@@ -115,7 +114,7 @@ describe Log4rExceptionable::RackFailureHandler do
     it "uses default logger if rack logger is nil" do
       
       Log4r::Logger['racklogger'].should_receive(:error) do |msg|
-        msg.should == "RuntimeError: I failed"
+        msg.should =~ /^RuntimeError: I failed/
       end
       
       lambda {
@@ -126,7 +125,7 @@ describe Log4rExceptionable::RackFailureHandler do
     it "uses default logger if rack logger is not log4r" do
       
       Log4r::Logger['racklogger'].should_receive(:error) do |msg|
-        msg.should == "RuntimeError: I failed"
+        msg.should =~ /^RuntimeError: I failed/
       end
       
       lambda {
@@ -138,7 +137,7 @@ describe Log4rExceptionable::RackFailureHandler do
       Log4r::Logger.new('RackLogger')
       Log4r::Logger['racklogger'].should_not_receive(:error)
       Log4r::Logger['RackLogger'].should_receive(:error) do |msg|
-        msg.should == "RuntimeError: I failed"
+        msg.should =~ /^RuntimeError: I failed/
       end
       
       lambda {

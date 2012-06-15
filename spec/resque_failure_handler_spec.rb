@@ -52,9 +52,8 @@ describe Log4rExceptionable::ResqueFailureHandler do
     it "triggers failure handler" do
       
       Log4r::Logger['resquelogger'].should_receive(:error) do |msg|
-        msg.should == "RuntimeError: I failed"
-        Log4r::MDC.get('resque_exception_backtrace').should =~ /resque_failure_handler_spec.rb/
-        Log4r::MDC.get('resque_exception_backtrace').lines.to_a.size.should > 1
+        msg.should =~ /^RuntimeError: I failed/
+        msg.should =~ /resque_failure_handler_spec.rb/
         Log4r::MDC.get('resque_exception_line').should =~ /\d+/
         Log4r::MDC.get('resque_exception_file').should =~ /resque_failure_handler_spec.rb/
         Log4r::MDC.get('resque_worker').should == ""
@@ -69,7 +68,7 @@ describe Log4rExceptionable::ResqueFailureHandler do
     it "uses default logger if job logger is nil" do
       
       Log4r::Logger['resquelogger'].should_receive(:error) do |msg|
-        msg.should == "RuntimeError: I failed"
+        msg.should =~ /^RuntimeError: I failed/
         Log4r::MDC.get('resque_class').should == "SomeJobWithNilLogger"
       end
       
@@ -79,7 +78,7 @@ describe Log4rExceptionable::ResqueFailureHandler do
     it "uses default logger if job logger is not log4r" do
       
       Log4r::Logger['resquelogger'].should_receive(:error) do |msg|
-        msg.should == "RuntimeError: I failed"
+        msg.should =~ /^RuntimeError: I failed/
         Log4r::MDC.get('resque_class').should == "SomeJobWithOtherLogger"
       end
       
@@ -90,7 +89,7 @@ describe Log4rExceptionable::ResqueFailureHandler do
       Log4r::Logger.new('SomeJobWithLogger')
       Log4r::Logger['resquelogger'].should_not_receive(:error)
       Log4r::Logger['SomeJobWithLogger'].should_receive(:error) do |msg|
-        msg.should == "RuntimeError: I failed"
+        msg.should =~ /^RuntimeError: I failed/
         Log4r::MDC.get('resque_class').should == "SomeJobWithLogger"
       end
       

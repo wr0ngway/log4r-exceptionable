@@ -12,10 +12,14 @@ module Log4rExceptionable
         original_mdc = mdc.get_context
         
         begin
-          mdc.put('rack_exception', exception.class.name)
+          message = "#{exception.class}: #{exception.message}"
+          
+          mdc.put('resque_exception', exception.class.name)
           trace = Array(exception.backtrace)
           if trace.size > 0
-            mdc.put('resque_exception_backtrace', trace.join("\n"))
+            message << "\n"
+            message << trace.join("\n")
+            
             file, line = trace[0].split(":")
             mdc.put('resque_exception_file', file)
             mdc.put('resque_exception_line', line)
@@ -33,7 +37,6 @@ module Log4rExceptionable
             error_logger = Log4rExceptionable::Configuration.resque_failure_logger
           end
           
-          message = "#{exception.class}: #{exception.message}"
           error_logger.error(message)
         ensure
           # Since this is somewhat of a global map, clean the keys
