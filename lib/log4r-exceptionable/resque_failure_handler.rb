@@ -12,17 +12,19 @@ module Log4rExceptionable
         original_mdc = mdc.get_context
         
         begin
-             
+          
           data = payload.clone
-          mdc.put("resque_worker", worker.to_s)
-          mdc.put("resque_queue", queue.to_s)
-          mdc.put("resque_class", data.delete('class').to_s)
-          mdc.put("resque_args", data.delete('args').inspect.to_s)
+          payload_class_name = data.delete('class')
+          payload_class = Resque.constantize(payload_class_name) rescue payload_class_name
+          mdc.put("resque_worker", worker)
+          mdc.put("resque_queue", queue)
+          mdc.put("resque_class", payload_class)
+          mdc.put("resque_args", data.delete('args'))
           
           # add in any extra payload data, in case resque plugins have
           # added to it (e.g. resque-lifecycle)
           data.each do |k, v|
-            mdc.put("resque_payload_#{k}", v.inspect.to_s)
+            mdc.put("resque_payload_#{k}", v)
           end
 
           payload_class = Resque.constantize(payload['class']) rescue nil

@@ -55,10 +55,10 @@ describe Log4rExceptionable::ResqueFailureHandler do
         msg.should be_instance_of RuntimeError
         msg.message.should == "I failed"
         msg.backtrace.first.should =~ /resque_failure_handler_spec.rb/
-        Log4r::MDC.get('resque_worker').should == ""
+        Log4r::MDC.get('resque_worker').should == nil
         Log4r::MDC.get('resque_queue').should == "somequeue"
-        Log4r::MDC.get('resque_class').should == "SomeJob"
-        Log4r::MDC.get('resque_args').should == "[\"foo\"]"
+        Log4r::MDC.get('resque_class').should == SomeJob
+        Log4r::MDC.get('resque_args').should == ["foo"]
       end
       
       run_resque_job(SomeJob, 'foo', :queue => :somequeue, :inline => true)
@@ -69,7 +69,7 @@ describe Log4rExceptionable::ResqueFailureHandler do
       Log4r::Logger['resquelogger'].should_receive(:error) do |msg|
         msg.should be_instance_of RuntimeError
         msg.message.should == "I failed"
-        Log4r::MDC.get('resque_class').should == "SomeJobWithNilLogger"
+        Log4r::MDC.get('resque_class').should == SomeJobWithNilLogger
       end
       
       run_resque_job(SomeJobWithNilLogger, 'foo', :queue => :somequeue, :inline => true)
@@ -80,7 +80,7 @@ describe Log4rExceptionable::ResqueFailureHandler do
       Log4r::Logger['resquelogger'].should_receive(:error) do |msg|
         msg.should be_instance_of RuntimeError
         msg.message.should == "I failed"
-        Log4r::MDC.get('resque_class').should == "SomeJobWithOtherLogger"
+        Log4r::MDC.get('resque_class').should == SomeJobWithOtherLogger
       end
       
       run_resque_job(SomeJobWithOtherLogger, 'foo', :queue => :somequeue, :inline => true)
@@ -92,7 +92,7 @@ describe Log4rExceptionable::ResqueFailureHandler do
       Log4r::Logger['SomeJobWithLogger'].should_receive(:error) do |msg|
         msg.should be_instance_of RuntimeError
         msg.message.should == "I failed"
-        Log4r::MDC.get('resque_class').should == "SomeJobWithLogger"
+        Log4r::MDC.get('resque_class').should == SomeJobWithLogger
       end
       
       run_resque_job(SomeJobWithLogger, 'foo', :queue => :somequeue, :inline => true)

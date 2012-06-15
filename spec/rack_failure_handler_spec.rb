@@ -74,7 +74,7 @@ describe Log4rExceptionable::RackFailureHandler do
         msg.should be_instance_of RuntimeError
         msg.message.should == "I failed"
         msg.backtrace.first.should =~ /rack_failure_handler_spec.rb/
-        Log4r::MDC.get('rack_env_PATH_INFO').should == '"/error"'
+        Log4r::MDC.get('rack_env_PATH_INFO').should == '/error'
       end
       
       lambda {
