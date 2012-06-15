@@ -6,10 +6,6 @@ module Log4rExceptionable
   #
   class ResqueFailureHandler < ::Resque::Failure::Base
 
-    def logger
-      Log4rExceptionable::Configuration.resque_failure_logger
-    end
-        
     def save
       begin
         mdc = Log4r::MDC
@@ -29,9 +25,16 @@ module Log4rExceptionable
           mdc.put("resque_queue", queue.to_s)
           mdc.put("resque_class", payload['class'].to_s)
           mdc.put("resque_args", payload['args'].inspect.to_s)
+
+          payload_class = Resque.constantize(payload['class']) rescue nil
+          if payload_class && payload_class.respond_to?(:logger) && payload_class.logger.instance_of?(Log4r::Logger)
+            error_logger = payload_class.logger
+          else
+            error_logger = Log4rExceptionable::Configuration.resque_failure_logger
+          end
           
           message = "#{exception.class}: #{exception.message}"
-          logger.error(message)
+          error_logger.error(message)
         ensure
           # Since this is somewhat of a global map, clean the keys
           # we put in so other log messages don't see them

@@ -1,26 +1,24 @@
 module Log4rExceptionable
     
-  # Failure backends that log exceptions with log4r
-  #
-  # Log4rExceptionable::Configuration.configure do |config|
-  #   # required
-  #   config.resque_failure_logger = "rails::SomeLogger"
-  #   config.rack_failure_logger = "rails::SomeLogger"
-  # end
-  #
-  # Rails.application.config.middleware.use "Log4rExceptionable::RackFailureHandler"
-  # Resque::Failure.backend = Log4rExceptionable::ResqueFailureHandler
+  # Configuration for the failure backends that log exceptions with log4r
   #
   class Configuration
 
     class << self
-      # required
+      # required - default loggers used if source logger not available
       attr_accessor :rack_failure_logger, :resque_failure_logger
+      attr_accessor :use_source_logger
     end
+
+    # default values
+    self.use_source_logger = true
 
     def self.configure
       yield self
-      raise "log4r-exceptionable requires a rack_failure_logger or resque_failure_logger" unless self.rack_failure_logger || self.resque_failure_logger
+
+      if ! self.rack_failure_logger && ! self.resque_failure_logger
+        raise "log4r-exceptionable requires a rack_failure_logger or resque_failure_logger"
+      end
 
       if self.rack_failure_logger
         self.set_logger(:rack_failure_logger)

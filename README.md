@@ -17,15 +17,28 @@ To use
 Add to some initializer code:
 
     Log4rExceptionable::Configuration.configure do |config|
-      # at least one logger needs to be set
+      
+      # The default loggers used when a source logger is not available
+      # required (at least one logger needs to be set, but you don't need
+      # to set rack if using resque, and vice versa)
+      #
       config.rack_failure_logger = "rails::SomeRackLogger"
       config.resque_failure_logger = "rails::SomeResqueLogger"
+
+      # Prevent the detection and use of the source class's logger
+      # The source logger is taken from the resque class raising
+      # the exception, rails controller raising the exception,
+      # or rack_env['rack.logger']
+      # optional (defaults to true)
+      #
+      # config.use_source_logger = false
+      
     end
   
     Rails.application.config.middleware.use "Log4rExceptionable::RackFailureHandler"
     Resque::Failure.backend = Log4rExceptionable::ResqueFailureHandler
 
-All failures will be logged using the given log4r logger name (or log4r logger instance if supplied instead)
+All failures will be logged using the source logger or the given logger if a source is not available. The logger can be set using their log4r fullname or a log4r logger instance.
 
 Author
 ------

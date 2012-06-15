@@ -10,10 +10,6 @@ module Log4rExceptionable
       @app = app
     end
   
-    def logger
-      Log4rExceptionable::Configuration.rack_failure_logger
-    end
-    
     def call(env)
       # Make thread safe
       dup._call(env)
@@ -62,8 +58,17 @@ module Log4rExceptionable
             end
           end
           
+          controller = env['action_controller.instance']
+          if controller && controller.respond_to?(:logger) && controller.logger.instance_of?(Log4r::Logger)
+            error_logger = controller.logger 
+          elsif env['rack.logger'] && env['rack.logger'].instance_of?(Log4r::Logger)
+            error_logger = env['rack.logger']
+          else
+            error_logger = Log4rExceptionable::Configuration.rack_failure_logger
+          end
+          
           message = "#{exception.class}: #{exception.message}"
-          logger.error(message)
+          error_logger.error(message)
         ensure
           # Since this is somewhat of a global map, clean the keys
           # we put in so other log messages don't see them

@@ -3,13 +3,46 @@ require "spec_helper"
 describe Log4rExceptionable::RackFailureHandler do
   include Rack::Test::Methods
 
+  class FakeController
+    class << self
+      attr_accessor :logger
+    end
+    def logger
+      self.class.logger
+    end
+  end
+  
   class TestApp
+    
     def call(env)
-      if env['PATH_INFO'] =~ /error/
-        raise "I failed"
-      else
-        return [200, {"Content-Type" => "text"}, ["hello"]]
+      error = env['PATH_INFO'] =~ /error/
+      
+      case env['PATH_INFO']
+        when /nil_controller_logger/
+          FakeController.logger = nil
+          env['action_controller.instance'] = FakeController.new
+          error = true
+        when /other_controller_logger/
+          FakeController.logger = Object.new
+          env['action_controller.instance'] = FakeController.new
+          error = true
+        when /controller_logger/
+          FakeController.logger = Log4r::Logger["ControllerLogger"] || Log4r::Logger.new("ControllerLogger")
+          env['action_controller.instance'] = FakeController.new
+          error = true
+        when /nil_rack_logger/
+          env['rack.logger'] = nil
+          error = true
+        when /other_rack_logger/
+          env['rack.logger'] = Object.new
+          error = true
+        when /rack_logger/
+          env['rack.logger'] = Log4r::Logger["RackLogger"] || Log4r::Logger.new("RackLogger")
+          error = true
       end
+      
+      raise "I failed" if error
+      return [200, {"Content-Type" => "text"}, ["hello"]]
     end
   end
   
@@ -42,6 +75,74 @@ describe Log4rExceptionable::RackFailureHandler do
       
       lambda {
         get "/error"
+      }.should raise_error("I failed")
+    end
+    
+    it "uses default logger if controller logger is nil" do
+      
+      Log4r::Logger['racklogger'].should_receive(:error) do |msg|
+        msg.should == "RuntimeError: I failed"
+      end
+      
+      lambda {
+        get "/nil_controller_logger"
+      }.should raise_error("I failed")
+    end
+    
+    it "uses default logger if controller logger is not log4r" do
+      
+      Log4r::Logger['racklogger'].should_receive(:error) do |msg|
+        msg.should == "RuntimeError: I failed"
+      end
+      
+      lambda {
+        get "/other_controller_logger"
+      }.should raise_error("I failed")
+    end
+    
+    it "uses controller logger if set" do
+      Log4r::Logger.new('ControllerLogger')
+      Log4r::Logger['racklogger'].should_not_receive(:error)
+      Log4r::Logger['ControllerLogger'].should_receive(:error) do |msg|
+        msg.should == "RuntimeError: I failed"
+      end
+      
+      lambda {
+        get "/controller_logger"
+      }.should raise_error("I failed")
+    end
+    
+    it "uses default logger if rack logger is nil" do
+      
+      Log4r::Logger['racklogger'].should_receive(:error) do |msg|
+        msg.should == "RuntimeError: I failed"
+      end
+      
+      lambda {
+        get "/nil_rack_logger"
+      }.should raise_error("I failed")
+    end
+    
+    it "uses default logger if rack logger is not log4r" do
+      
+      Log4r::Logger['racklogger'].should_receive(:error) do |msg|
+        msg.should == "RuntimeError: I failed"
+      end
+      
+      lambda {
+        get "/other_rack_logger"
+      }.should raise_error("I failed")
+    end
+    
+    it "uses rack logger if set" do
+      Log4r::Logger.new('RackLogger')
+      Log4r::Logger['racklogger'].should_not_receive(:error)
+      Log4r::Logger['RackLogger'].should_receive(:error) do |msg|
+        msg.should == "RuntimeError: I failed"
+      end
+      
+      lambda {
+        get "/rack_logger"
       }.should raise_error("I failed")
     end
     
