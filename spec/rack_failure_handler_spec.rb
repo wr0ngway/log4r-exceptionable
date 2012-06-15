@@ -10,6 +10,12 @@ describe Log4rExceptionable::RackFailureHandler do
     def logger
       self.class.logger
     end
+    def controller_name
+      "foo"
+    end
+    def action_name
+      "bar"
+    end
   end
   
   class TestApp
@@ -106,6 +112,20 @@ describe Log4rExceptionable::RackFailureHandler do
       Log4r::Logger['ControllerLogger'].should_receive(:error) do |msg|
         msg.should be_instance_of RuntimeError
         msg.message.should == "I failed"
+      end
+      
+      lambda {
+        get "/controller_logger"
+      }.should raise_error("I failed")
+    end
+    
+    it "adds controller names if set" do
+      Log4r::Logger.new('ControllerLogger')
+      Log4r::Logger['ControllerLogger'].should_receive(:error) do |msg|
+        msg.should be_instance_of RuntimeError
+        msg.message.should == "I failed"
+        Log4r::MDC.get('rack_controller_name').should == 'foo'
+        Log4r::MDC.get('rack_action_name').should == 'bar'
       end
       
       lambda {

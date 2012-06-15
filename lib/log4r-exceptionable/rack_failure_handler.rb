@@ -46,6 +46,7 @@ module Log4rExceptionable
               begin
                 mdc.put("rack_env_#{k}", v.inspect)
               rescue
+                puts "Log4r Exceptionable could not extract a rack env item: " + e.message
               end
             end
           end
@@ -53,6 +54,12 @@ module Log4rExceptionable
           controller = env['action_controller.instance']
           if controller && controller.respond_to?(:logger) && controller.logger.instance_of?(Log4r::Logger)
             error_logger = controller.logger 
+            begin
+              mdc.put("rack_controller_name", controller.controller_name.to_s)
+              mdc.put("rack_action_name", controller.action_name.to_s)
+            rescue => e
+              puts "Log4r Exceptionable could not extract controller names: " + e.message
+            end
           elsif env['rack.logger'] && env['rack.logger'].instance_of?(Log4r::Logger)
             error_logger = env['rack.logger']
           else
