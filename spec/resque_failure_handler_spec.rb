@@ -54,7 +54,7 @@ describe Log4rExceptionable::ResqueFailureHandler do
       Log4r::Logger['resquelogger'].should_receive(:error) do |msg|
         msg.should =~ /^RuntimeError: I failed/
         msg.should =~ /resque_failure_handler_spec.rb/
-        Log4r::MDC.get('resque_exception_line').should =~ /\d+/
+        Log4r::MDC.get('resque_exception_line').should be_integer
         Log4r::MDC.get('resque_exception_file').should =~ /resque_failure_handler_spec.rb/
         Log4r::MDC.get('resque_worker').should == ""
         Log4r::MDC.get('resque_queue').should == "somequeue"

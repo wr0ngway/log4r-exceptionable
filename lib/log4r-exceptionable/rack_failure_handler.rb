@@ -50,7 +50,7 @@ module Log4rExceptionable
 
             file, line = trace[0].split(":")
             mdc.put('rack_exception_file', file)
-            mdc.put('rack_exception_line', line)
+            mdc.put('rack_exception_line', line.to_i)
           end
     
           if env and env.size > 0

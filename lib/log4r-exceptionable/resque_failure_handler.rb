@@ -22,7 +22,7 @@ module Log4rExceptionable
             
             file, line = trace[0].split(":")
             mdc.put('resque_exception_file', file)
-            mdc.put('resque_exception_line', line)
+            mdc.put('resque_exception_line', line.to_i)
           end
           
           mdc.put("resque_worker", worker.to_s)

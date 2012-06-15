@@ -67,7 +67,7 @@ describe Log4rExceptionable::RackFailureHandler do
       Log4r::Logger['racklogger'].should_receive(:error) do |msg|
         msg.should =~ /^RuntimeError: I failed/
         msg.should =~ /rack_failure_handler_spec.rb/
-        Log4r::MDC.get('rack_exception_line').should =~ /\d+/
+        Log4r::MDC.get('rack_exception_line').should be_integer
         Log4r::MDC.get('rack_exception_file').should =~ /rack_failure_handler_spec.rb/
         Log4r::MDC.get('rack_env_PATH_INFO').should == '"/error"'
       end
