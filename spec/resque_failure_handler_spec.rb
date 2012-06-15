@@ -52,10 +52,9 @@ describe Log4rExceptionable::ResqueFailureHandler do
     it "triggers failure handler" do
       
       Log4r::Logger['resquelogger'].should_receive(:error) do |msg|
-        msg.should =~ /^RuntimeError: I failed/
-        msg.should =~ /resque_failure_handler_spec.rb/
-        Log4r::MDC.get('resque_exception_line').should be_integer
-        Log4r::MDC.get('resque_exception_file').should =~ /resque_failure_handler_spec.rb/
+        msg.should be_instance_of RuntimeError
+        msg.message.should == "I failed"
+        msg.backtrace.first.should =~ /resque_failure_handler_spec.rb/
         Log4r::MDC.get('resque_worker').should == ""
         Log4r::MDC.get('resque_queue').should == "somequeue"
         Log4r::MDC.get('resque_class').should == "SomeJob"
@@ -68,7 +67,8 @@ describe Log4rExceptionable::ResqueFailureHandler do
     it "uses default logger if job logger is nil" do
       
       Log4r::Logger['resquelogger'].should_receive(:error) do |msg|
-        msg.should =~ /^RuntimeError: I failed/
+        msg.should be_instance_of RuntimeError
+        msg.message.should == "I failed"
         Log4r::MDC.get('resque_class').should == "SomeJobWithNilLogger"
       end
       
@@ -78,7 +78,8 @@ describe Log4rExceptionable::ResqueFailureHandler do
     it "uses default logger if job logger is not log4r" do
       
       Log4r::Logger['resquelogger'].should_receive(:error) do |msg|
-        msg.should =~ /^RuntimeError: I failed/
+        msg.should be_instance_of RuntimeError
+        msg.message.should == "I failed"
         Log4r::MDC.get('resque_class').should == "SomeJobWithOtherLogger"
       end
       
@@ -89,7 +90,8 @@ describe Log4rExceptionable::ResqueFailureHandler do
       Log4r::Logger.new('SomeJobWithLogger')
       Log4r::Logger['resquelogger'].should_not_receive(:error)
       Log4r::Logger['SomeJobWithLogger'].should_receive(:error) do |msg|
-        msg.should =~ /^RuntimeError: I failed/
+        msg.should be_instance_of RuntimeError
+        msg.message.should == "I failed"
         Log4r::MDC.get('resque_class').should == "SomeJobWithLogger"
       end
       

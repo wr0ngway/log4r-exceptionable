@@ -40,19 +40,7 @@ module Log4rExceptionable
         original_mdc = mdc.get_context
         
         begin
-          message = "#{exception.class}: #{exception.message}"
-          
-          mdc.put('rack_exception', exception.class.name)
-          trace = Array(exception.backtrace)
-          if trace.size > 0
-            message << "\n"
-            message << trace.join("\n")
 
-            file, line = trace[0].split(":")
-            mdc.put('rack_exception_file', file)
-            mdc.put('rack_exception_line', line.to_i)
-          end
-    
           if env and env.size > 0
             env.each do |k, v|
               begin
@@ -71,7 +59,7 @@ module Log4rExceptionable
             error_logger = Log4rExceptionable::Configuration.rack_failure_logger
           end
           
-          error_logger.error(message)
+          error_logger.error(exception)
         ensure
           # Since this is somewhat of a global map, clean the keys
           # we put in so other log messages don't see them
