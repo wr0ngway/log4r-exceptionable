@@ -1,3 +1,8 @@
+0.5.2 (06/15/2012)
+------------------
+
+Put exception trace in message rather than context <9bc73b7>
+
 0.5.1 (06/15/2012)
 ------------------
 
