@@ -1,3 +1,10 @@
+0.5.3 (06/15/2012)
+------------------
+
+add in controller/action names from rails as custom attributes <a83c1f5>
+delegate exception formatting to log4r by passing exception object to logger instead of creating message manually <d9526d3>
+store exception line as an int not string <9de126a>
+
 0.5.2 (06/15/2012)
 ------------------
 
