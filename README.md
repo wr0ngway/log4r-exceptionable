@@ -1,5 +1,5 @@
-graylog2-resque
-===============
+log4r-exceptionable
+===================
 
 This gem provides failure handlers for [Resque][0] and [Rack][1] that logs all failures using [log4r][2].  It is expected that these logs will get sent elsewhere (e.g. [graylog][3]) by using log4r outputters (e.g. [log4r-gelf][4]).  It adds contextual information to the log message using Log4r::MDC, which is useful if you are using log4r-gelf since it sends all of those to graylog as custom attributes. 
 
