@@ -1,6 +1,7 @@
 require "log4r"
 require "log4r-exceptionable/version"
 require "log4r-exceptionable/configuration"
+require "log4r-exceptionable/helper"
 
 # optional if only using resque
 begin

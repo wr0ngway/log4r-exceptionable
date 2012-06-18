@@ -58,9 +58,12 @@ describe Log4rExceptionable::RackFailureHandler do
 
   context "handling rack failures" do
 
-    before(:all) do
+    before(:each) do
       Log4rExceptionable::Configuration.configure do |config|
         config.rack_failure_logger = 'racklogger'
+        config.use_source_logger = true
+        config.context_inclusions = nil
+        config.context_exclusions = nil
       end
     end
     
@@ -119,6 +122,20 @@ describe Log4rExceptionable::RackFailureHandler do
       }.should raise_error("I failed")
     end
     
+    it "uses default logger if source logger disabled" do
+      Log4rExceptionable::Configuration.use_source_logger = false
+      Log4r::Logger.new('ControllerLogger')
+      Log4r::Logger['ControllerLogger'].should_not_receive(:error)
+      Log4r::Logger['racklogger'].should_receive(:error) do |msg|
+        msg.should be_instance_of RuntimeError
+        msg.message.should == "I failed"
+      end
+      
+      lambda {
+        get "/controller_logger"
+      }.should raise_error("I failed")
+    end
+    
     it "adds controller names if set" do
       Log4r::Logger.new('ControllerLogger')
       Log4r::Logger['ControllerLogger'].should_receive(:error) do |msg|
@@ -146,7 +163,6 @@ describe Log4rExceptionable::RackFailureHandler do
     end
     
     it "uses default logger if rack logger is not log4r" do
-      
       Log4r::Logger['racklogger'].should_receive(:error) do |msg|
         msg.should be_instance_of RuntimeError
         msg.message.should == "I failed"
@@ -170,6 +186,36 @@ describe Log4rExceptionable::RackFailureHandler do
       }.should raise_error("I failed")
     end
     
+    it "only includes inclusions if set" do
+      Log4rExceptionable::Configuration.context_inclusions = ['rack_env_rack.version']
+      
+      Log4r::Logger['racklogger'].should_receive(:error) do |msg|
+        msg.should be_instance_of RuntimeError
+        msg.message.should == "I failed"
+        Log4r::MDC.get_context.keys.should == ['rack_env_rack.version']
+      end
+      
+      lambda {
+        get "/other_rack_logger"
+      }.should raise_error("I failed")
+      
+    end
+
+    it "excludes exclusions if set" do
+      Log4rExceptionable::Configuration.context_exclusions = ['rack_env_rack.version']
+      
+      Log4r::Logger['racklogger'].should_receive(:error) do |msg|
+        msg.should be_instance_of RuntimeError
+        msg.message.should == "I failed"
+        Log4r::MDC.get_context.keys.should_not include 'rack_env_rack.version'
+      end
+      
+      lambda {
+        get "/other_rack_logger"
+      }.should raise_error("I failed")
+      
+    end
+
   end
   
 end

@@ -29,13 +29,25 @@ Add to some initializer code:
       # The source logger is taken from the resque class raising
       # the exception, rails controller raising the exception,
       # or rack_env['rack.logger']
-      # optional (defaults to true)
+      # optional - defaults to true
       #
       # config.use_source_logger = false
       
+      # A whitelist of the context keys to include when logging.
+      # If this is set, _only_these keys will show up.
+      # optional - defaults to nil, so all keys get included
+      #
+      # config.context_inclusions = ['rack_env.rack.version']
+
+      # A blacklist of the context keys to exclude when logging.
+      # If this is set, the keys in here will not show up.
+      # optional - defaults to nil, so no keys get excluded
+      #
+      # config.context_exclusions = ['resque_args']
+      
     end
   
-    Rails.application.config.middleware.use "Log4rExceptionable::RackFailureHandler"
+    Rails.application.config.middleware.use Log4rExceptionable::RackFailureHandler
     Resque::Failure.backend = Log4rExceptionable::ResqueFailureHandler
 
 All failures will be logged using the source logger or the given logger if a source is not available. The logger can be set using their log4r fullname or a log4r logger instance.

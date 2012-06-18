@@ -41,9 +41,12 @@ describe Log4rExceptionable::ResqueFailureHandler do
       end
     end
 
-    before(:all) do
+    before(:each) do
       Log4rExceptionable::Configuration.configure do |config|
         config.resque_failure_logger = 'resquelogger'
+        config.use_source_logger = true
+        config.context_inclusions = nil
+        config.context_exclusions = nil
       end
       
       Resque::Failure.backend = Log4rExceptionable::ResqueFailureHandler
@@ -96,6 +99,44 @@ describe Log4rExceptionable::ResqueFailureHandler do
       end
       
       run_resque_job(SomeJobWithLogger, 'foo', :queue => :somequeue, :inline => true)
+    end
+    
+    it "uses default logger if source logger disabled" do
+      Log4rExceptionable::Configuration.use_source_logger = false
+      
+      Log4r::Logger.new('SomeJobWithLogger')
+      Log4r::Logger['SomeJobWithLogger'].should_not_receive(:error)
+      Log4r::Logger['resquelogger'].should_receive(:error) do |msg|
+        msg.should be_instance_of RuntimeError
+        msg.message.should == "I failed"
+        Log4r::MDC.get('resque_class').should == SomeJobWithLogger
+      end
+      
+      run_resque_job(SomeJobWithLogger, 'foo', :queue => :somequeue, :inline => true)
+    end
+    
+    it "only includes inclusions if set" do
+      Log4rExceptionable::Configuration.context_inclusions = ['resque_queue']
+      
+      Log4r::Logger['resquelogger'].should_receive(:error) do |msg|
+        msg.should be_instance_of RuntimeError
+        msg.message.should == "I failed"
+        Log4r::MDC.get_context.keys.should == ['resque_queue']
+      end
+      
+      run_resque_job(SomeJob, 'foo', :queue => :somequeue, :inline => true)
+    end
+
+    it "excludes exclusions if set" do
+      Log4rExceptionable::Configuration.context_exclusions = ['resque_queue']
+      
+      Log4r::Logger['resquelogger'].should_receive(:error) do |msg|
+        msg.should be_instance_of RuntimeError
+        msg.message.should == "I failed"
+        Log4r::MDC.get_context.keys.should_not include 'resque_queue'
+      end
+      
+      run_resque_job(SomeJob, 'foo', :queue => :somequeue, :inline => true)
     end
     
   end
