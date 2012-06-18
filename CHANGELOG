@@ -1,3 +1,8 @@
+0.6.0 (06/18/2012)
+------------------
+
+Add white/black lists for context keys Fix disabling source_logger <cb85b26>
+
 0.5.4 (06/15/2012)
 ------------------
 
