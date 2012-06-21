@@ -60,6 +60,31 @@ describe Log4rExceptionable::Configuration do
       Log4rExceptionable::Configuration.rack_failure_logger.should == Log4r::Logger['otherlogger']
     end
     
+    it "should raise if invalid log_level" do
+      lambda {
+        Log4rExceptionable::Configuration.configure do |config|
+          config.rack_failure_logger = "mylogger"
+          config.log_level = nil
+        end
+      }.should raise_error("Invalid log level: ")
+
+      lambda {
+        Log4rExceptionable::Configuration.configure do |config|
+          config.rack_failure_logger = "mylogger"
+          config.log_level = :foobar
+        end
+      }.should raise_error("Invalid log level: foobar")
+    end
+
+    it "should allow setting valid log_level" do
+      lambda {
+        Log4rExceptionable::Configuration.configure do |config|
+          config.rack_failure_logger = "mylogger"
+          config.log_level = :debug
+        end
+      }.should_not raise_error
+    end
+
   end
   
 end

@@ -33,6 +33,11 @@ Add to some initializer code:
       #
       # config.use_source_logger = false
       
+      # Log at the given log level
+      # optional - defaults to :fatal
+      #
+      # config.log_level = :error
+      
       # A whitelist of the context keys to include when logging.
       # If this is set, _only_these keys will show up.
       # optional - defaults to nil, so all keys get included

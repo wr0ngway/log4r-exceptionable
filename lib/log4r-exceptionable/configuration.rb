@@ -9,6 +9,8 @@ module Log4rExceptionable
       attr_accessor :rack_failure_logger, :resque_failure_logger
       # Allows one to force use of default loggers by setting to false
       attr_accessor :use_source_logger
+      # The level to log exceptions
+      attr_accessor :log_level
       # whitelist of context keys (e.g. keys in rack env) to include in log4r context when logging
       attr_accessor :context_inclusions
       # blacklist of context keys (e.g. keys in rack env) to exclude in log4r context when logging
@@ -17,6 +19,7 @@ module Log4rExceptionable
 
     # default values
     self.use_source_logger = true
+    self.log_level = :fatal
 
     def self.configure
       yield self
@@ -35,7 +38,9 @@ module Log4rExceptionable
       
       self.context_inclusions = Set.new(self.context_inclusions) if self.context_inclusions
       self.context_exclusions = Set.new(self.context_exclusions) if self.context_exclusions
-      
+
+      raise "Invalid log level: #{self.log_level}" unless Log4r::LNAMES.include?(self.log_level.to_s.upcase)
+      self.log_level = self.log_level.to_sym
     end
 
     def self.set_logger(accessor)

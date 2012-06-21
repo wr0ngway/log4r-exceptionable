@@ -64,16 +64,17 @@ describe Log4rExceptionable::RackFailureHandler do
         config.use_source_logger = true
         config.context_inclusions = nil
         config.context_exclusions = nil
+        config.log_level = :fatal
       end
     end
     
     it "doesn't log a failure with normal usage" do
-      Log4r::Logger['racklogger'].should_not_receive(:error)
+      Log4r::Logger['racklogger'].should_not_receive(:fatal)
       get "/"
     end
     
     it "triggers failure handler" do
-      Log4r::Logger['racklogger'].should_receive(:error) do |msg|
+      Log4r::Logger['racklogger'].should_receive(:fatal) do |msg|
         msg.should be_instance_of RuntimeError
         msg.message.should == "I failed"
         msg.backtrace.first.should =~ /rack_failure_handler_spec.rb/
@@ -87,7 +88,7 @@ describe Log4rExceptionable::RackFailureHandler do
     
     it "uses default logger if controller logger is nil" do
       
-      Log4r::Logger['racklogger'].should_receive(:error) do |msg|
+      Log4r::Logger['racklogger'].should_receive(:fatal) do |msg|
         msg.should be_instance_of RuntimeError
         msg.message.should == "I failed"
       end
@@ -99,7 +100,7 @@ describe Log4rExceptionable::RackFailureHandler do
     
     it "uses default logger if controller logger is not log4r" do
       
-      Log4r::Logger['racklogger'].should_receive(:error) do |msg|
+      Log4r::Logger['racklogger'].should_receive(:fatal) do |msg|
         msg.should be_instance_of RuntimeError
         msg.message.should == "I failed"
       end
@@ -111,8 +112,8 @@ describe Log4rExceptionable::RackFailureHandler do
     
     it "uses controller logger if set" do
       Log4r::Logger.new('ControllerLogger')
-      Log4r::Logger['racklogger'].should_not_receive(:error)
-      Log4r::Logger['ControllerLogger'].should_receive(:error) do |msg|
+      Log4r::Logger['racklogger'].should_not_receive(:fatal)
+      Log4r::Logger['ControllerLogger'].should_receive(:fatal) do |msg|
         msg.should be_instance_of RuntimeError
         msg.message.should == "I failed"
       end
@@ -125,8 +126,8 @@ describe Log4rExceptionable::RackFailureHandler do
     it "uses default logger if source logger disabled" do
       Log4rExceptionable::Configuration.use_source_logger = false
       Log4r::Logger.new('ControllerLogger')
-      Log4r::Logger['ControllerLogger'].should_not_receive(:error)
-      Log4r::Logger['racklogger'].should_receive(:error) do |msg|
+      Log4r::Logger['ControllerLogger'].should_not_receive(:fatal)
+      Log4r::Logger['racklogger'].should_receive(:fatal) do |msg|
         msg.should be_instance_of RuntimeError
         msg.message.should == "I failed"
       end
@@ -138,7 +139,7 @@ describe Log4rExceptionable::RackFailureHandler do
     
     it "adds controller names if set" do
       Log4r::Logger.new('ControllerLogger')
-      Log4r::Logger['ControllerLogger'].should_receive(:error) do |msg|
+      Log4r::Logger['ControllerLogger'].should_receive(:fatal) do |msg|
         msg.should be_instance_of RuntimeError
         msg.message.should == "I failed"
         Log4r::MDC.get('rack_controller_name').should == 'foo'
@@ -152,7 +153,7 @@ describe Log4rExceptionable::RackFailureHandler do
     
     it "uses default logger if rack logger is nil" do
       
-      Log4r::Logger['racklogger'].should_receive(:error) do |msg|
+      Log4r::Logger['racklogger'].should_receive(:fatal) do |msg|
         msg.should be_instance_of RuntimeError
         msg.message.should == "I failed"
       end
@@ -163,7 +164,7 @@ describe Log4rExceptionable::RackFailureHandler do
     end
     
     it "uses default logger if rack logger is not log4r" do
-      Log4r::Logger['racklogger'].should_receive(:error) do |msg|
+      Log4r::Logger['racklogger'].should_receive(:fatal) do |msg|
         msg.should be_instance_of RuntimeError
         msg.message.should == "I failed"
       end
@@ -175,8 +176,8 @@ describe Log4rExceptionable::RackFailureHandler do
     
     it "uses rack logger if set" do
       Log4r::Logger.new('RackLogger')
-      Log4r::Logger['racklogger'].should_not_receive(:error)
-      Log4r::Logger['RackLogger'].should_receive(:error) do |msg|
+      Log4r::Logger['racklogger'].should_not_receive(:fatal)
+      Log4r::Logger['RackLogger'].should_receive(:fatal) do |msg|
         msg.should be_instance_of RuntimeError
         msg.message.should == "I failed"
       end
@@ -189,7 +190,7 @@ describe Log4rExceptionable::RackFailureHandler do
     it "only includes inclusions if set" do
       Log4rExceptionable::Configuration.context_inclusions = ['rack_env_rack.version']
       
-      Log4r::Logger['racklogger'].should_receive(:error) do |msg|
+      Log4r::Logger['racklogger'].should_receive(:fatal) do |msg|
         msg.should be_instance_of RuntimeError
         msg.message.should == "I failed"
         Log4r::MDC.get_context.keys.should == ['rack_env_rack.version']
@@ -204,7 +205,7 @@ describe Log4rExceptionable::RackFailureHandler do
     it "excludes exclusions if set" do
       Log4rExceptionable::Configuration.context_exclusions = ['rack_env_rack.version']
       
-      Log4r::Logger['racklogger'].should_receive(:error) do |msg|
+      Log4r::Logger['racklogger'].should_receive(:fatal) do |msg|
         msg.should be_instance_of RuntimeError
         msg.message.should == "I failed"
         Log4r::MDC.get_context.keys.should_not include 'rack_env_rack.version'
@@ -216,6 +217,19 @@ describe Log4rExceptionable::RackFailureHandler do
       
     end
 
+    it "logs with given log_level" do
+      Log4rExceptionable::Configuration.log_level = :info
+      
+      Log4r::Logger['racklogger'].should_receive(:info) do |msg|
+        msg.should be_instance_of RuntimeError
+        msg.message.should == "I failed"
+      end
+      
+      lambda {
+        get "/other_rack_logger"
+      }.should raise_error("I failed")
+    end
+    
   end
   
 end

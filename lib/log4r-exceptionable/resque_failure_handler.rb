@@ -36,7 +36,7 @@ module Log4rExceptionable
         
         error_logger ||= Log4rExceptionable::Configuration.resque_failure_logger
         
-        error_logger.error(exception)
+        error_logger.send(Log4rExceptionable::Configuration.log_level, exception)
       end
       
     end

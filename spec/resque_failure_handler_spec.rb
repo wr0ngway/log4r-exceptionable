@@ -47,6 +47,7 @@ describe Log4rExceptionable::ResqueFailureHandler do
         config.use_source_logger = true
         config.context_inclusions = nil
         config.context_exclusions = nil
+        config.log_level = :fatal
       end
       
       Resque::Failure.backend = Log4rExceptionable::ResqueFailureHandler
@@ -54,7 +55,7 @@ describe Log4rExceptionable::ResqueFailureHandler do
     
     it "triggers failure handler" do
       
-      Log4r::Logger['resquelogger'].should_receive(:error) do |msg|
+      Log4r::Logger['resquelogger'].should_receive(:fatal) do |msg|
         msg.should be_instance_of RuntimeError
         msg.message.should == "I failed"
         msg.backtrace.first.should =~ /resque_failure_handler_spec.rb/
@@ -69,7 +70,7 @@ describe Log4rExceptionable::ResqueFailureHandler do
     
     it "uses default logger if job logger is nil" do
       
-      Log4r::Logger['resquelogger'].should_receive(:error) do |msg|
+      Log4r::Logger['resquelogger'].should_receive(:fatal) do |msg|
         msg.should be_instance_of RuntimeError
         msg.message.should == "I failed"
         Log4r::MDC.get('resque_class').should == SomeJobWithNilLogger
@@ -80,7 +81,7 @@ describe Log4rExceptionable::ResqueFailureHandler do
     
     it "uses default logger if job logger is not log4r" do
       
-      Log4r::Logger['resquelogger'].should_receive(:error) do |msg|
+      Log4r::Logger['resquelogger'].should_receive(:fatal) do |msg|
         msg.should be_instance_of RuntimeError
         msg.message.should == "I failed"
         Log4r::MDC.get('resque_class').should == SomeJobWithOtherLogger
@@ -91,8 +92,8 @@ describe Log4rExceptionable::ResqueFailureHandler do
     
     it "uses job logger if set" do
       Log4r::Logger.new('SomeJobWithLogger')
-      Log4r::Logger['resquelogger'].should_not_receive(:error)
-      Log4r::Logger['SomeJobWithLogger'].should_receive(:error) do |msg|
+      Log4r::Logger['resquelogger'].should_not_receive(:fatal)
+      Log4r::Logger['SomeJobWithLogger'].should_receive(:fatal) do |msg|
         msg.should be_instance_of RuntimeError
         msg.message.should == "I failed"
         Log4r::MDC.get('resque_class').should == SomeJobWithLogger
@@ -105,8 +106,8 @@ describe Log4rExceptionable::ResqueFailureHandler do
       Log4rExceptionable::Configuration.use_source_logger = false
       
       Log4r::Logger.new('SomeJobWithLogger')
-      Log4r::Logger['SomeJobWithLogger'].should_not_receive(:error)
-      Log4r::Logger['resquelogger'].should_receive(:error) do |msg|
+      Log4r::Logger['SomeJobWithLogger'].should_not_receive(:fatal)
+      Log4r::Logger['resquelogger'].should_receive(:fatal) do |msg|
         msg.should be_instance_of RuntimeError
         msg.message.should == "I failed"
         Log4r::MDC.get('resque_class').should == SomeJobWithLogger
@@ -118,7 +119,7 @@ describe Log4rExceptionable::ResqueFailureHandler do
     it "only includes inclusions if set" do
       Log4rExceptionable::Configuration.context_inclusions = ['resque_queue']
       
-      Log4r::Logger['resquelogger'].should_receive(:error) do |msg|
+      Log4r::Logger['resquelogger'].should_receive(:fatal) do |msg|
         msg.should be_instance_of RuntimeError
         msg.message.should == "I failed"
         Log4r::MDC.get_context.keys.should == ['resque_queue']
@@ -130,7 +131,7 @@ describe Log4rExceptionable::ResqueFailureHandler do
     it "excludes exclusions if set" do
       Log4rExceptionable::Configuration.context_exclusions = ['resque_queue']
       
-      Log4r::Logger['resquelogger'].should_receive(:error) do |msg|
+      Log4r::Logger['resquelogger'].should_receive(:fatal) do |msg|
         msg.should be_instance_of RuntimeError
         msg.message.should == "I failed"
         Log4r::MDC.get_context.keys.should_not include 'resque_queue'
@@ -138,6 +139,18 @@ describe Log4rExceptionable::ResqueFailureHandler do
       
       run_resque_job(SomeJob, 'foo', :queue => :somequeue, :inline => true)
     end
+    
+    it "logs with given log_level" do
+      Log4rExceptionable::Configuration.log_level = :info
+      
+      Log4r::Logger['resquelogger'].should_receive(:info) do |msg|
+        msg.should be_instance_of RuntimeError
+        msg.message.should == "I failed"
+      end
+      
+      run_resque_job(SomeJob, 'foo', :queue => :somequeue, :inline => true)
+    end
+    
     
   end
   
