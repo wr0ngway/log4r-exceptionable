@@ -1,3 +1,8 @@
+0.7.0 (06/21/2012)
+------------------
+
+allow logging exceptions with custom log level, default to fatal <3db1839>
+
 0.6.0 (06/18/2012)
 ------------------
 
