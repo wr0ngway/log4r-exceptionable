@@ -20,7 +20,8 @@ module Log4rExceptionable
         end
         
       rescue => e
-        $stderr.puts "Log4r Exceptionable could not log exception: " + e.message
+        raise e unless Log4rExceptionable::Configuration.failsafe_logging
+        $stderr.puts "Log4r Exceptionable could not log exception: #{e.class} #{e.message}"
       end
     end
 

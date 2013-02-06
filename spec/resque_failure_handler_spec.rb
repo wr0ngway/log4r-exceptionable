@@ -1,7 +1,7 @@
 require "spec_helper"
 
 describe Log4rExceptionable::ResqueFailureHandler do
-  include PerformJob
+  include PerformResqueJob
 
   context "handling resque failures" do
 
@@ -65,7 +65,7 @@ describe Log4rExceptionable::ResqueFailureHandler do
         Log4r::MDC.get('resque_args').should == ["foo"]
       end
       
-      run_resque_job(SomeJob, 'foo', :queue => :somequeue, :inline => true)
+      run_job(SomeJob, 'foo', :queue => :somequeue, :inline => true)
     end
     
     it "uses default logger if job logger is nil" do
@@ -76,7 +76,7 @@ describe Log4rExceptionable::ResqueFailureHandler do
         Log4r::MDC.get('resque_class').should == SomeJobWithNilLogger
       end
       
-      run_resque_job(SomeJobWithNilLogger, 'foo', :queue => :somequeue, :inline => true)
+      run_job(SomeJobWithNilLogger, 'foo', :queue => :somequeue, :inline => true)
     end
     
     it "uses default logger if job logger is not log4r" do
@@ -87,7 +87,7 @@ describe Log4rExceptionable::ResqueFailureHandler do
         Log4r::MDC.get('resque_class').should == SomeJobWithOtherLogger
       end
       
-      run_resque_job(SomeJobWithOtherLogger, 'foo', :queue => :somequeue, :inline => true)
+      run_job(SomeJobWithOtherLogger, 'foo', :queue => :somequeue, :inline => true)
     end
     
     it "uses job logger if set" do
@@ -99,7 +99,7 @@ describe Log4rExceptionable::ResqueFailureHandler do
         Log4r::MDC.get('resque_class').should == SomeJobWithLogger
       end
       
-      run_resque_job(SomeJobWithLogger, 'foo', :queue => :somequeue, :inline => true)
+      run_job(SomeJobWithLogger, 'foo', :queue => :somequeue, :inline => true)
     end
     
     it "uses default logger if source logger disabled" do
@@ -113,7 +113,7 @@ describe Log4rExceptionable::ResqueFailureHandler do
         Log4r::MDC.get('resque_class').should == SomeJobWithLogger
       end
       
-      run_resque_job(SomeJobWithLogger, 'foo', :queue => :somequeue, :inline => true)
+      run_job(SomeJobWithLogger, 'foo', :queue => :somequeue, :inline => true)
     end
     
     it "only includes inclusions if set" do
@@ -125,7 +125,7 @@ describe Log4rExceptionable::ResqueFailureHandler do
         Log4r::MDC.get_context.keys.should == ['resque_queue']
       end
       
-      run_resque_job(SomeJob, 'foo', :queue => :somequeue, :inline => true)
+      run_job(SomeJob, 'foo', :queue => :somequeue, :inline => true)
     end
 
     it "excludes exclusions if set" do
@@ -137,7 +137,7 @@ describe Log4rExceptionable::ResqueFailureHandler do
         Log4r::MDC.get_context.keys.should_not include 'resque_queue'
       end
       
-      run_resque_job(SomeJob, 'foo', :queue => :somequeue, :inline => true)
+      run_job(SomeJob, 'foo', :queue => :somequeue, :inline => true)
     end
     
     it "logs with given log_level" do
@@ -148,7 +148,7 @@ describe Log4rExceptionable::ResqueFailureHandler do
         msg.message.should == "I failed"
       end
       
-      run_resque_job(SomeJob, 'foo', :queue => :somequeue, :inline => true)
+      run_job(SomeJob, 'foo', :queue => :somequeue, :inline => true)
     end
     
     

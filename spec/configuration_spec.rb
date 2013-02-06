@@ -7,13 +7,14 @@ describe Log4rExceptionable::Configuration do
     before(:each) do
       Log4rExceptionable::Configuration.rack_failure_logger = nil
       Log4rExceptionable::Configuration.resque_failure_logger = nil
+      Log4rExceptionable::Configuration.sidekiq_failure_logger = nil
     end
     
     it "should raise if no logger in config" do
       lambda {
         Log4rExceptionable::Configuration.configure do |config|
         end
-      }.should raise_error("log4r-exceptionable requires a rack_failure_logger or resque_failure_logger")
+      }.should raise_error("log4r-exceptionable requires a rack_failure_logger or resque_failure_logger or sidekiq_failure_logger")
     end
 
     it "should not raise if config has a rack logger" do

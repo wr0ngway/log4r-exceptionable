@@ -25,5 +25,6 @@ Gem::Specification.new do |s|
   
   s.add_development_dependency("rack-test")
   s.add_development_dependency("resque")
+  s.add_development_dependency("sidekiq")
   s.add_dependency("log4r")
 end

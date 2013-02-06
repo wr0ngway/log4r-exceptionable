@@ -9,6 +9,12 @@ begin
 rescue LoadError
 end
 
+# optional if only using sidekiq
+begin
+  require "log4r-exceptionable/sidekiq_failure_handler"
+rescue LoadError
+end
+
 # optional if only using rack
 begin
   require "log4r-exceptionable/resque_failure_handler"
